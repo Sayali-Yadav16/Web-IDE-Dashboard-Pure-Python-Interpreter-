@@ -27,6 +27,9 @@ To execute the official 5 test cases and view the score:
 ```bash
 python tests/run_tests.py
 ```
+<img width="950" height="415" alt="image" src="https://github.com/user-attachments/assets/08d23929-eecb-4aaa-8190-029d14b2bcdf" />
+
+<img width="950" height="419" alt="image" src="https://github.com/user-attachments/assets/cd9e0da1-073c-4eb1-bce8-5a6379dde7a1" />
 
 To run any custom JavaScript file directly in your terminal:
 ```bash
