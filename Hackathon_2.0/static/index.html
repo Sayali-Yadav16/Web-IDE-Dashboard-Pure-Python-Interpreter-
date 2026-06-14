@@ -1,0 +1,1379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ Thunder Runtime — Professional JS IDE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Design Tokens & Theme Palettes */
+        :root {
+            /* Midnight Violet Theme (Default) */
+            --bg: #09090b;
+            --surface: #141416;
+            --surface-hover: #1e1e22;
+            --border: #222226;
+            --text: #f4f4f5;
+            --text-muted: #71717a;
+            --accent: #8b5cf6;
+            --accent-glow: rgba(139, 92, 246, 0.2);
+            --accent2: #06b6d4;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.1);
+            --error: #ef4444;
+            --error-glow: rgba(239, 68, 68, 0.1);
+            --code-bg: #09090b;
+            
+            --font-ui: 'Outfit', sans-serif;
+            --font-code: 'Fira Code', monospace;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="cyberpunk"] {
+            --bg: #040409;
+            --surface: #0b0b18;
+            --surface-hover: #14142d;
+            --border: #2c124a;
+            --text: #e2e2ff;
+            --text-muted: #7961a6;
+            --accent: #ff007f;
+            --accent-glow: rgba(255, 0, 127, 0.2);
+            --accent2: #00f0ff;
+            --success: #39ff14;
+            --success-glow: rgba(57, 255, 20, 0.1);
+            --error: #ff3131;
+            --error-glow: rgba(255, 49, 49, 0.1);
+            --code-bg: #05050e;
+        }
+
+        [data-theme="matrix"] {
+            --bg: #000000;
+            --surface: #050c05;
+            --surface-hover: #0a1f0a;
+            --border: #004400;
+            --text: #00ff00;
+            --text-muted: #006600;
+            --accent: #00ff00;
+            --accent-glow: rgba(0, 255, 0, 0.2);
+            --accent2: #00aa00;
+            --success: #00ff00;
+            --success-glow: rgba(0, 255, 0, 0.1);
+            --error: #ff0000;
+            --error-glow: rgba(255, 0, 0, 0.1);
+            --code-bg: #010301;
+        }
+
+        [data-theme="dracula"] {
+            --bg: #282a36;
+            --surface: #1e1f29;
+            --surface-hover: #282a36;
+            --border: #44475a;
+            --text: #f8f8f2;
+            --text-muted: #6272a4;
+            --accent: #ff79c6;
+            --accent-glow: rgba(255, 121, 198, 0.2);
+            --accent2: #8be9fd;
+            --success: #50fa7b;
+            --success-glow: rgba(80, 250, 123, 0.1);
+            --error: #ff5555;
+            --error-glow: rgba(255, 85, 85, 0.1);
+            --code-bg: #14151b;
+        }
+
+        /* Scrollbars Customization */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-ui);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Top Header */
+        header {
+            background-color: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 28px;
+            z-index: 100;
+        }
+
+        .header-wrap {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-symbol {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: #fff;
+            font-size: 20px;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .brand-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-desc {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Theme selection dots */
+        .theme-panel {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: rgba(0,0,0,0.25);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .theme-lbl {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+        }
+
+        .theme-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .theme-dot:hover {
+            transform: scale(1.15);
+        }
+
+        .theme-dot.active {
+            border-color: var(--text);
+            box-shadow: 0 0 8px var(--text-muted);
+        }
+
+        .theme-dot.violet { background-color: #8b5cf6; }
+        .theme-dot.cyberpunk { background-color: #ff007f; }
+        .theme-dot.matrix { background-color: #00ff00; }
+        .theme-dot.dracula { background-color: #ff79c6; }
+
+        .tag-badge {
+            background-color: rgba(255,255,255,0.03);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent2);
+        }
+
+        /* Workspace Grid & Mobile responsiveness flow */
+        .workspace {
+            flex: 1;
+            max-width: 1600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Mobile specific reordering */
+        .ide-card-sidebar { order: 3; }
+        .ide-card-editor { order: 1; }
+        .ide-card-terminal { order: 2; }
+
+        @media (min-width: 1024px) {
+            .workspace {
+                display: grid;
+                grid-template-columns: 280px 1fr 1fr;
+                gap: 20px;
+                padding: 24px;
+            }
+            .ide-card-sidebar { order: 0; }
+            .ide-card-editor { order: 0; }
+            .ide-card-terminal { order: 0; }
+        }
+
+        /* Panel Container */
+        .ide-card {
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            transition: var(--transition);
+        }
+
+        .card-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: rgba(0,0,0,0.12);
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Sidebar file explorer */
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .list-section-header {
+            padding: 10px 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(0,0,0,0.06);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .file-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 280px;
+        }
+
+        .file-entry {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+            color: var(--text-muted);
+        }
+
+        .file-entry:hover {
+            background-color: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .file-entry.active {
+            background-color: var(--bg);
+            border-left-color: var(--accent);
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .file-name-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .js-badge {
+            background: #f7df1e;
+            color: #323330;
+            font-weight: bold;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-family: var(--font-code);
+        }
+
+        .file-tag-preset {
+            font-size: 9px;
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .file-tag-custom {
+            font-size: 9px;
+            background-color: rgba(139, 92, 246, 0.1);
+            color: var(--accent);
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        .file-delete-trigger {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+        }
+
+        .file-entry:hover .file-delete-trigger {
+            opacity: 1;
+        }
+
+        .file-delete-trigger:hover {
+            color: var(--error);
+        }
+
+        .sidebar-footer-buttons {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(0,0,0,0.08);
+        }
+
+        .side-btn {
+            width: 100%;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            font-weight: 600;
+        }
+
+        .side-btn:hover {
+            border-color: var(--accent);
+            background-color: var(--surface-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Metrics */
+        .metrics-block {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            background: rgba(0,0,0,0.1);
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .metric-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .metric-lbl {
+            color: var(--text-muted);
+        }
+
+        .metric-val {
+            font-family: var(--font-code);
+            font-weight: 600;
+        }
+
+        /* MIDDLE: Editor */
+        .workspace-editor {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .editor-header-bar {
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.1);
+        }
+
+        .editor-tabs-strip {
+            display: flex;
+            gap: 2px;
+            overflow-x: auto;
+        }
+
+        .editor-tab {
+            padding: 12px 16px;
+            font-size: 13px;
+            font-family: var(--font-code);
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .editor-tab:hover {
+            color: var(--text);
+            background-color: rgba(255,255,255,0.02);
+        }
+
+        .editor-tab.active {
+            color: var(--accent2);
+            border-bottom-color: var(--accent2);
+            background-color: rgba(0,0,0,0.15);
+            font-weight: 500;
+        }
+
+        .editor-actions {
+            display: flex;
+            gap: 8px;
+            padding: 6px 0;
+        }
+
+        .flat-btn {
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .flat-btn:hover {
+            color: var(--text);
+            border-color: var(--text-muted);
+            background-color: var(--surface-hover);
+        }
+
+        .editor-pane-container {
+            position: relative;
+            background-color: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin: 18px;
+            overflow: hidden;
+            flex: 1;
+            min-height: 400px;
+            display: flex;
+            box-shadow: inset 0 4px 15px rgba(0, 0, 0, 0.4);
+            transition: border-color 0.2s ease;
+        }
+
+        .num-gutter {
+            width: 48px;
+            padding: 12px 0;
+            background-color: rgba(0,0,0,0.2);
+            color: var(--text-muted);
+            text-align: right;
+            padding-right: 14px;
+            user-select: none;
+            border-right: 1px solid var(--border);
+            overflow: hidden;
+            font-family: var(--font-code);
+            font-size: 13px;
+            line-height: 22px;
+        }
+
+        .num-gutter div {
+            height: 22px;
+        }
+
+        .editor-input {
+            flex: 1;
+            background: transparent;
+            color: var(--text);
+            border: none;
+            resize: none;
+            padding: 12px;
+            outline: none;
+            font-family: var(--font-code);
+            font-size: 13px;
+            line-height: 22px;
+            overflow-y: auto;
+            white-space: pre;
+            box-sizing: border-box;
+            caret-color: var(--success);
+        }
+
+        .editor-footer {
+            padding: 0 18px 18px 18px;
+        }
+
+        .action-submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff;
+            border: none;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .action-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        .action-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .action-submit-btn:disabled {
+            background: var(--border);
+            color: var(--text-muted);
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* RIGHT: Terminal Console */
+        .workspace-terminal {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 18px;
+            gap: 14px;
+        }
+
+        .console-hud {
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .indicator-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .dot-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .dot-pulse.success {
+            background-color: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .dot-pulse.error {
+            background-color: var(--error);
+            box-shadow: 0 0 8px var(--error);
+        }
+
+        .dot-pulse.running {
+            background-color: var(--accent2);
+            box-shadow: 0 0 8px var(--accent2);
+            animation: terminalPulse 0.8s infinite alternate;
+        }
+
+        @keyframes terminalPulse {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+
+        .console-logs-pane {
+            flex: 1;
+            background-color: var(--code-bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: var(--font-code);
+            font-size: 13px;
+            line-height: 22px;
+            overflow-y: auto;
+            height: 380px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .log-line {
+            color: var(--success);
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            opacity: 0;
+            transform: translateY(3px);
+            animation: fadeLog 0.25s ease forwards;
+        }
+
+        .log-error-line {
+            color: var(--error);
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            opacity: 0;
+            transform: translateY(3px);
+            animation: fadeLog 0.25s ease forwards;
+        }
+
+        @keyframes fadeLog {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .console-actions-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Toast popup notifications */
+        .toast-banner {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-size: 13px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            border-left: 4px solid var(--accent);
+        }
+
+        .toast-banner.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Mobile specific spacing and layouts scale down */
+        @media (max-width: 768px) {
+            .workspace {
+                padding: 10px;
+                gap: 12px;
+            }
+            .editor-pane-container {
+                margin: 8px;
+                min-height: 320px;
+            }
+            .editor-footer {
+                padding: 0 8px 8px 8px;
+            }
+            .workspace-terminal {
+                padding: 10px;
+            }
+            .console-logs-pane {
+                height: 320px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 10px 14px;
+            }
+            .header-wrap {
+                justify-content: center;
+                text-align: center;
+            }
+            .header-logo {
+                flex-direction: column;
+                align-items: center;
+            }
+            .header-controls {
+                flex-direction: column;
+                gap: 10px;
+                width: 100%;
+            }
+            .theme-panel {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        footer {
+            padding: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            background: rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-wrap">
+            <div class="header-logo">
+                <div class="logo-symbol">⚡</div>
+                <div class="brand-details">
+                    <span class="brand-title">Thunder Runtime</span>
+                    <span class="brand-desc">Professional Web IDE Dashboard (Pure Python Interpreter)</span>
+                </div>
+            </div>
+            <div class="header-controls">
+                <div class="theme-panel">
+                    <span class="theme-lbl">Theme</span>
+                    <div class="theme-dot violet active" onclick="changeTheme('default')" id="theme-default" title="Midnight Violet"></div>
+                    <div class="theme-dot cyberpunk" onclick="changeTheme('cyberpunk')" id="theme-cyberpunk" title="Cyberpunk Neon"></div>
+                    <div class="theme-dot matrix" onclick="changeTheme('matrix')" id="theme-matrix" title="Matrix Terminal"></div>
+                    <div class="theme-dot dracula" onclick="changeTheme('dracula')" id="theme-dracula" title="Dracula Dark"></div>
+                </div>
+                <span class="tag-badge">Hackathon 2.0 Entry</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <!-- LEFT: File Explorer and statistics (Stacked at bottom on mobile) -->
+        <div class="ide-card ide-card-sidebar">
+            <div class="card-header">
+                <div class="card-title">📂 File Explorer</div>
+            </div>
+            <div class="sidebar-section">
+                <!-- Preset section -->
+                <div class="list-section-header">Preset Test Cases (Locked)</div>
+                <div class="file-scroll-container" id="presetFilesContainer">
+                    <!-- Presets here -->
+                </div>
+
+                <!-- Custom files section -->
+                <div class="list-section-header">Custom Code Scripts</div>
+                <div class="file-scroll-container" id="customFilesContainer" style="max-height: 180px;">
+                    <!-- Custom scripts here -->
+                </div>
+
+                <!-- Footer button action panel -->
+                <div class="sidebar-footer-buttons">
+                    <button class="side-btn" onclick="createNewFile()">➕ New Script</button>
+                    <button class="side-btn" onclick="document.getElementById('fileUploadInput').click()">📤 Upload Script</button>
+                    <input type="file" id="fileUploadInput" accept=".js" style="display: none;" onchange="handleFileUpload(event)">
+                </div>
+
+                <!-- Editor stats -->
+                <div class="metrics-block">
+                    <div class="metric-row">
+                        <span class="metric-lbl">Chars</span>
+                        <span class="metric-val" id="charCount">0</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-lbl">Lines</span>
+                        <span class="metric-val" id="lineCount">0</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-lbl">Approx. Tokens</span>
+                        <span class="metric-val" id="tokenCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MIDDLE: Code Editor Area (Placed on top on mobile) -->
+        <div class="ide-card ide-card-editor" style="grid-column: span 1;">
+            <div class="card-header">
+                <div class="card-title">📝 Code Editor</div>
+            </div>
+            <div class="workspace-editor">
+                <div class="editor-header-bar">
+                    <div class="editor-tabs-strip">
+                        <div class="editor-tab active" id="editorActiveTab">
+                            <span class="js-badge">JS</span>
+                            <span id="currentFileName">tc1_odd_even.js</span>
+                        </div>
+                    </div>
+                    <div class="editor-actions">
+                        <button class="flat-btn" onclick="shareCode()">🔗 Share Link</button>
+                        <button class="flat-btn" onclick="downloadCode()">💾 Download</button>
+                    </div>
+                </div>
+
+                <div class="editor-pane-container" id="editorContainer">
+                    <div class="num-gutter" id="lineNumbers">
+                        <div>1</div>
+                    </div>
+                    <textarea id="codeEditor" class="editor-input" placeholder="// Write JavaScript here...
+// Tab key indents work!
+// Drag & drop a file inside here to upload it!" spellcheck="false" oninput="onEditorInput()"></textarea>
+                </div>
+
+                <div class="editor-footer">
+                    <div class="run-btn-section">
+                        <button id="runBtn" class="action-submit-btn" onclick="runJS()">
+                            <span class="spinner" id="btnSpinner"></span>
+                            <span id="btnText">▶ Execute Script</span>
+                        </button>
+                        <div class="keyboard-hint">Shortcut: Press <strong>Ctrl + Enter</strong> to execute</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Terminal Output Console (Placed in middle on mobile) -->
+        <div class="ide-card ide-card-terminal">
+            <div class="card-header">
+                <div class="card-title">🖥️ Output Terminal</div>
+                <div class="console-actions-bar">
+                    <button class="flat-btn" onclick="copyOutput()">Copy</button>
+                    <button class="flat-btn" onclick="clearOutput()">Clear</button>
+                </div>
+            </div>
+            <div class="workspace-terminal">
+                <div class="console-hud">
+                    <div class="indicator-wrap">
+                        <div class="dot-pulse" id="statusDot"></div>
+                        <span id="statusText">Ready</span>
+                    </div>
+                    <div class="time-badge">
+                        Time: <span id="executionTime">-</span> ms
+                    </div>
+                </div>
+
+                <div class="console-logs-pane" id="terminal">
+                    <div class="placeholder-line" id="terminalPlaceholder">// Run code to capture stdout logs...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast-banner">
+        <span id="toastIcon">⚡</span>
+        <span id="toastMsg">Action completed!</span>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Thunder Runtime Project. Public Repo verified against all official test cases.</p>
+    </footer>
+
+    <script>
+        // Preset files mapping to 12 verified test cases
+        const PRESETS = {
+            "tc1_odd_even.js": `let num = 7;\nif (num % 2 === 0) {\n  console.log(num + " is Even");\n} else {\n  console.log(num + " is Odd");\n}`,
+            "tc2_triangle.js": `for (let i = 1; i <= 5; i++) {\n  let row = "";\n  for (let j = 1; j <= i; j++) {\n    row += "*";\n  }\n  console.log(row);\n}`,
+            "tc3_armstrong.js": `function isArmstrong(num) {\n  let temp = num;\n  let sum = 0;\n  while (temp > 0) {\n    let digit = temp % 10;\n    sum += digit ** 3;\n    temp = Math.floor(temp / 10);\n  }\n  return sum === num;\n}\nconsole.log(isArmstrong(153));\nconsole.log(isArmstrong(123));`,
+            "tc4_array_reverse.js": `let arr = [1, 2, 3, 4, 5];\nlet reversed = [...arr].reverse();\nconsole.log("Original: " + arr.join(", "));\nconsole.log("Reversed: " + reversed.join(", "));`,
+            "tc5_palindrome.js": `let str = "racecar";\nlet reversed = str.split("").reverse().join("");\nif (str === reversed) {\n  console.log(str + " is a Palindrome");\n} else {\n  console.log(str + " is not a Palindrome");\n}`,
+            "tc6_fibonacci.js": `function makeCounter() {\n  let count = 0;\n  return function() {\n    count++;\n    return count;\n  };\n}\nconst counter = makeCounter();\nconsole.log(counter());\nconsole.log(counter());\n\nfunction fib(n) {\n  if (n <= 1) return n;\n  return fib(n - 1) + fib(n - 2);\n}\nconsole.log(fib(6));`,
+            "tc7_scoping.js": `let x = 10;\nconst y = 20;\nif (true) {\n  let x = 5;\n  console.log(x);\n  console.log(y);\n}\nconsole.log(x);`,
+            "tc8_callbacks.js": `let items = [1, 2, 3, 4];\nlet doubled = items.map(x => x * 2);\nlet filtered = doubled.filter(x => x > 5);\nlet sum = filtered.reduce((acc, val) => acc + val, 0);\nconsole.log(sum);`,
+            "tc9_destructuring.js": `const obj = { user: { name: "Alice", age: 25 }, tags: [1, 2] };\nconst { user: { name }, tags: [first, second] } = obj;\nconsole.log(name + " " + first + " " + second);`,
+            "tc10_coercion.js": `console.log("5" + 3);\nconsole.log("5" - 3);\nconsole.log("5" == 5);\nconsole.log("5" === 5);\nconsole.log(null == undefined);\nconsole.log(null === undefined);`,
+            "tc11_optional_chaining.js": `const obj = { a: { b: 2 } };\nconsole.log(obj.a?.b);\nconsole.log(obj.c?.d);\nconsole.log(null ?? 42);\nconsole.log(undefined ?? "default");\nconsole.log(0 ?? 100);`,
+            "tc12_math.js": `console.log(Math.max(1, 5, 3));\nconsole.log(Math.min(1, 5, 3));\nconsole.log(Math.round(2.5));\nconsole.log(Math.ceil(2.1));\nconsole.log(Math.floor(2.9));`
+        };
+
+        let files = {};
+        let activeFile = "tc1_odd_even.js";
+
+        // Load files from storage or presets
+        function initFiles() {
+            const stored = localStorage.getItem("thunder_files_v5");
+            if (stored) {
+                try {
+                    files = JSON.parse(stored);
+                } catch (e) {
+                    files = { ...PRESETS };
+                }
+            } else {
+                files = { ...PRESETS, "scratchpad.js": "// Write scratch code here\nconsole.log('Welcome to Thunder Runtime!');\n" };
+            }
+
+            // check hash sharing
+            checkShareHash();
+
+            renderFileList();
+            loadActiveFile();
+        }
+
+        // Check if there is base64 code share inside URL hash
+        function checkShareHash() {
+            const hash = window.location.hash;
+            if (hash.startsWith("#code=")) {
+                const b64 = hash.substring(6);
+                try {
+                    const code = atob(b64);
+                    const name = "shared_code.js";
+                    files[name] = code;
+                    activeFile = name;
+                    showToast("🔗 Loaded shared code from URL!", "⚡");
+                    window.history.pushState("", document.title, window.location.pathname);
+                } catch (e) {
+                    console.error("Failed to decode share URL code", e);
+                }
+            }
+        }
+
+        // Show a custom toast notification instead of alert()
+        function showToast(message, icon = "⚡") {
+            const toast = document.getElementById("toast");
+            document.getElementById("toastMsg").innerText = message;
+            document.getElementById("toastIcon").innerText = icon;
+            toast.classList.add("show");
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        // Render file tree
+        function renderFileList() {
+            const presetContainer = document.getElementById("presetFilesContainer");
+            const customContainer = document.getElementById("customFilesContainer");
+            
+            presetContainer.innerHTML = "";
+            customContainer.innerHTML = "";
+
+            Object.keys(files).sort().forEach(name => {
+                const isPreset = name.startsWith("tc");
+                const item = document.createElement("div");
+                item.className = `file-entry ${name === activeFile ? 'active' : ''}`;
+                item.onclick = () => selectFile(name);
+
+                if (isPreset) {
+                    item.innerHTML = `
+                        <div class="file-name-info">
+                            <span class="js-badge">JS</span>
+                            <span>${name}</span>
+                            <span class="file-tag-preset">locked</span>
+                        </div>
+                    `;
+                    presetContainer.appendChild(item);
+                } else {
+                    item.innerHTML = `
+                        <div class="file-name-info">
+                            <span class="js-badge">JS</span>
+                            <span>${name}</span>
+                            <span class="file-tag-custom">custom</span>
+                        </div>
+                        <button class="file-delete-trigger" onclick="deleteFile(event, '${name}')">×</button>
+                    `;
+                    customContainer.appendChild(item);
+                }
+            });
+        }
+
+        // Switch active script
+        function selectFile(name) {
+            if (activeFile && files[activeFile] !== undefined) {
+                files[activeFile] = editor.value;
+            }
+            activeFile = name;
+            localStorage.setItem("thunder_files_v4", JSON.stringify(files));
+            renderFileList();
+            loadActiveFile();
+        }
+
+        function loadActiveFile() {
+            editor.value = files[activeFile] || "";
+            document.getElementById("currentFileName").innerText = activeFile;
+            updateLineNumbers();
+            updateStats();
+        }
+
+        // Create new blank script
+        function createNewFile() {
+            const name = prompt("Enter a script name (e.g. hello.js):");
+            if (!name) return;
+            let finalName = name.trim();
+            if (!finalName.endsWith(".js")) {
+                finalName += ".js";
+            }
+            if (files[finalName] !== undefined) {
+                showToast("A file with that name already exists!", "✖");
+                return;
+            }
+            files[finalName] = `// ${finalName}\nconsole.log("Running ${finalName}!");\n`;
+            activeFile = finalName;
+            localStorage.setItem("thunder_files_v4", JSON.stringify(files));
+            renderFileList();
+            loadActiveFile();
+            showToast(`Created file: ${finalName}`, "➕");
+        }
+
+        // Delete script file
+        function deleteFile(event, name) {
+            event.stopPropagation();
+            if (name.startsWith("tc")) return; // presets locked
+            if (!confirm(`Confirm deleting ${name}?`)) return;
+            
+            delete files[name];
+            if (activeFile === name) {
+                activeFile = Object.keys(files)[0] || "tc1_odd_even.js";
+            }
+            localStorage.setItem("thunder_files_v4", JSON.stringify(files));
+            renderFileList();
+            loadActiveFile();
+            showToast(`Deleted file: ${name}`, "🗑️");
+        }
+
+        // Local script file disk uploader
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const content = e.target.result;
+                let name = file.name;
+                if (!name.endsWith(".js")) {
+                    name += ".js";
+                }
+                if (files[name] !== undefined) {
+                    const extIdx = name.lastIndexOf('.');
+                    const base = name.substring(0, extIdx);
+                    const ext = name.substring(extIdx);
+                    let count = 1;
+                    while (files[`${base}_${count}${ext}`] !== undefined) {
+                        count++;
+                    }
+                    name = `${base}_${count}${ext}`;
+                }
+                files[name] = content;
+                activeFile = name;
+                localStorage.setItem("thunder_files_v4", JSON.stringify(files));
+                renderFileList();
+                loadActiveFile();
+                showToast(`Uploaded file: ${name}`, "📤");
+            };
+            reader.readAsText(file);
+            event.target.value = "";
+        }
+
+        // Drag and Drop script uploader setup
+        const editorBox = document.getElementById("editorContainer");
+        editorBox.addEventListener("dragover", (e) => {
+            e.preventDefault();
+            editorBox.style.borderColor = "var(--accent)";
+        });
+        editorBox.addEventListener("dragleave", () => {
+            editorBox.style.borderColor = "var(--border)";
+        });
+        editorBox.addEventListener("drop", (e) => {
+            e.preventDefault();
+            editorBox.style.borderColor = "var(--border)";
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    let name = file.name;
+                    if (!name.endsWith(".js")) name += ".js";
+                    files[name] = evt.target.result;
+                    activeFile = name;
+                    localStorage.setItem("thunder_files_v4", JSON.stringify(files));
+                    renderFileList();
+                    loadActiveFile();
+                    showToast(`Dropped & loaded: ${name}`, "📥");
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        // Autosave input
+        function onEditorInput() {
+            files[activeFile] = editor.value;
+            localStorage.setItem("thunder_files_v4", JSON.stringify(files));
+            updateLineNumbers();
+            updateStats();
+        }
+
+        // Dynamic script statistics count
+        function updateStats() {
+            const val = editor.value;
+            document.getElementById("charCount").innerText = val.length;
+            document.getElementById("lineCount").innerText = val.split("\n").length;
+            
+            const tokens = val.trim().split(/[\s,;.(){}\[\]+\-*\/%&|=!<>?:]+/).filter(Boolean);
+            document.getElementById("tokenCount").innerText = tokens.length;
+        }
+
+        // Line Numbers synchronization
+        const editor = document.getElementById('codeEditor');
+        const lineNumbers = document.getElementById('lineNumbers');
+
+        function updateLineNumbers() {
+            const lines = editor.value.split('\n');
+            const lineCount = Math.max(lines.length, 1);
+            let html = '';
+            for (let i = 1; i <= lineCount; i++) {
+                html += `<div>${i}</div>`;
+            }
+            lineNumbers.innerHTML = html;
+        }
+
+        editor.addEventListener('scroll', () => {
+            lineNumbers.scrollTop = editor.scrollTop;
+        });
+
+        // Insert double-space on tab key
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = editor.selectionStart;
+                const end = editor.selectionEnd;
+                editor.value = editor.value.substring(0, start) + "  " + editor.value.substring(end);
+                editor.selectionStart = editor.selectionEnd = start + 2;
+                onEditorInput();
+            }
+        });
+
+        // Ctrl+Enter keyboard shortcut execution
+        window.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                runJS();
+            }
+        });
+
+        // Execute JS code via Flask
+        async function runJS() {
+            const code = editor.value;
+            const runBtn = document.getElementById('runBtn');
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            const execTimeLabel = document.getElementById('executionTime');
+            const terminal = document.getElementById('terminal');
+
+            runBtn.disabled = true;
+            btnText.innerText = "Running...";
+            btnSpinner.style.display = "inline-block";
+            statusDot.className = "dot-pulse running";
+            statusText.innerText = "Running";
+
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code })
+                });
+
+                const data = await response.json();
+                
+                terminal.innerHTML = '';
+                execTimeLabel.innerText = data.execution_time_ms;
+
+                if (data.success) {
+                    statusDot.className = "dot-pulse success";
+                    statusText.innerText = "Success";
+                    
+                    const lines = data.output.split('\n');
+                    if (lines.length === 1 && lines[0] === "") {
+                        terminal.innerHTML = `<div class="log-line placeholder-line">// Succeeded with empty stdout logs.</div>`;
+                    } else {
+                        lines.forEach((line, index) => {
+                            const lineEl = document.createElement('div');
+                            lineEl.className = line.startsWith("[ERROR]") ? 'log-error-line' : 'log-line';
+                            lineEl.style.animationDelay = `${index * 15}ms`;
+                            lineEl.innerText = line.startsWith("[ERROR]") ? `$ ${line.substring(7)}` : `$ ${line}`;
+                            terminal.appendChild(lineEl);
+                        });
+                    }
+                    showToast("Code execution succeeded!", "✓");
+                } else {
+                    statusDot.className = "dot-pulse error";
+                    statusText.innerText = "Error";
+                    
+                    if (data.output) {
+                        data.output.split('\n').forEach((line, index) => {
+                            const lineEl = document.createElement('div');
+                            lineEl.className = 'log-line';
+                            lineEl.innerText = `$ ${line}`;
+                            terminal.appendChild(lineEl);
+                        });
+                    }
+                    
+                    const errorEl = document.createElement('div');
+                    errorEl.className = 'log-error-line';
+                    errorEl.style.fontWeight = 'bold';
+                    errorEl.innerText = `✖ ${data.error}`;
+                    terminal.appendChild(errorEl);
+                    showToast("Code execution failed with error", "✖");
+                }
+
+                terminal.scrollTop = terminal.scrollHeight;
+
+            } catch (err) {
+                statusDot.className = "dot-pulse error";
+                statusText.innerText = "Fail";
+                terminal.innerHTML = `<div class="log-error-line">// Fail: API Connection rejected. Ensure Flask backend runs on port 5000.</div>`;
+                execTimeLabel.innerText = "-";
+                showToast("Connection failed to server!", "✖");
+            } finally {
+                runBtn.disabled = false;
+                btnText.innerText = "Execute Script";
+                btnSpinner.style.display = "none";
+            }
+        }
+
+        // Copy Terminal output logs
+        function copyOutput() {
+            const terminal = document.getElementById('terminal');
+            const lines = [];
+            terminal.childNodes.forEach(node => {
+                if (node.innerText && !node.innerText.startsWith('//')) {
+                    let text = node.innerText;
+                    if (text.startsWith('$ ')) text = text.substring(2);
+                    else if (text.startsWith('✖ ')) text = text.substring(2);
+                    lines.push(text);
+                }
+            });
+            navigator.clipboard.writeText(lines.join('\n')).then(() => {
+                showToast("Copied terminal logs to clipboard", "📋");
+            });
+        }
+
+        // Clear terminal output
+        function clearOutput() {
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML = '<div class="placeholder-line" id="terminalPlaceholder">// Console cleared.</div>';
+            document.getElementById('statusDot').className = "dot-pulse";
+            document.getElementById('statusText').innerText = "Ready";
+            document.getElementById('executionTime').innerText = "-";
+            showToast("Console cleared", "🗑️");
+        }
+
+        // Download JS Script File
+        function downloadCode() {
+            const text = editor.value;
+            const blob = new Blob([text], { type: "text/javascript" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = activeFile;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast(`Downloaded script ${activeFile}`, "💾");
+        }
+
+        // Share base64 encoded URL link
+        function shareCode() {
+            const code = editor.value;
+            const b64 = btoa(code);
+            const shareUrl = window.location.origin + window.location.pathname + "#code=" + b64;
+            
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                showToast("Shareable link copied to clipboard!", "🔗");
+            });
+        }
+
+        // Theme changer
+        function changeTheme(themeName) {
+            if (themeName === "default") {
+                document.documentElement.removeAttribute("data-theme");
+            } else {
+                document.documentElement.setAttribute("data-theme", themeName);
+            }
+            
+            // Set active dot
+            document.querySelectorAll(".theme-dot").forEach(dot => dot.classList.remove("active"));
+            
+            const activeDot = document.getElementById(`theme-${themeName}`);
+            if (activeDot) activeDot.classList.add("active");
+            
+            localStorage.setItem("thunder_theme_v3", themeName);
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem("thunder_theme_v3") || "default";
+        changeTheme(savedTheme);
+
+        // Run Init
+        initFiles();
+    </script>
+</body>
+</html>
